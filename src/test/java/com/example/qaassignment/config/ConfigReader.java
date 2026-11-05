@@ -15,7 +15,7 @@ public class ConfigReader {
     static {
         try(InputStream input = ConfigReader.class.getClassLoader().getResourceAsStream(configFile)){
             if(input ==null){
-                throw new RuntimeException(configFile + "not found");
+                throw new RuntimeException(configFile + " not found");
             }
 
             properties.load(input);
