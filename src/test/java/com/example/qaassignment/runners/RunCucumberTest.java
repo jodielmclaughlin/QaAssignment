@@ -1,13 +1,15 @@
 package com.example.qaassignment.runners;
 
-import io.cucumber.junit.platform.engine.Constants;
+
 import org.junit.platform.suite.api.*;
+
+import static io.cucumber.core.options.Constants.GLUE_PROPERTY_NAME;
 
 @Suite
 @IncludeEngines("cucumber")
 @SelectPackages("features")
 @ConfigurationParameters({
-        @ConfigurationParameter(key= Constants.GLUE_PROPERTY_NAME, value="steps, shared"),
+        @ConfigurationParameter(key= GLUE_PROPERTY_NAME, value="steps"),
         @ConfigurationParameter(key="cucumber.snippet-type", value ="camelcase")
 })
 public class RunCucumberTest {

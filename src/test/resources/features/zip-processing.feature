@@ -1,4 +1,4 @@
-Feature: Validate and processing ZIP files
+Feature: Validate and process ZIP files
 
   Background:
     Given the ZIP processing folders exist
