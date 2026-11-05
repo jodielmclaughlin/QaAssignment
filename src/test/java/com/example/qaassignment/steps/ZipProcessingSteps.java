@@ -7,64 +7,85 @@ import io.cucumber.java.en.When;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static com.example.qaassignment.config.ConfigReader.*;
 
 public class ZipProcessingSteps {
+    private final ScenarioContext context;
+
+    public ZipProcessingSteps(ScenarioContext context) {
+        this.context = context;
+    }
 
     @Given("the ZIP processing folders exist")
     public void theZIPProcessingFoldersExist() throws IOException {
-        // Write code here that turns the phrase above into concrete actions
-        throw new io.cucumber.java.PendingException();
+        Files.createDirectories(Path.of(inputFolder()));
+        Files.createDirectories(Path.of(processingFolder()));
+        Files.createDirectories(Path.of(encodedFolder()));
+        Files.createDirectories(Path.of(errorFolder()));
     }
+
     @Given("the ZIP processing folders are empty")
-    public void theZIPProcessingFoldersAreEmpty() {
+    public void theZIPProcessingFoldersAreEmpty() throws IOException{
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Given("a ZIP containing supported files exists in the input folder")
     public void aZIPContainingSupportedFilesExistsInTheInputFolder() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @When("the ZIP file is submitted for processing")
     public void theZIPFileIsSubmittedForProcessing() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the API returns status {int}")
     public void theAPIReturnsStatus(Integer int1) {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the response processed file is the ZIP file")
     public void theResponseProcessedFileIsTheZIPFile() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the response encoded file is the base64 file")
     public void theResponseEncodedFileIsTheBase64File() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the processed ZIP file exists in the processed folder")
     public void theProcessedZIPFileExistsInTheProcessedFolder() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the base64 file exists in the encoded folder")
     public void theBase64FileExistsInTheEncodedFolder() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the base64 output decodes to a valid ZIP")
     public void theBase64OutputDecodesToAValidZIP() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the decoded ZIP matches the processed ZIP")
     public void theDecodedZIPMatchesTheProcessedZIP() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the original ZIP no longer exists in the input folder")
     public void theOriginalZIPNoLongerExistsInTheInputFolder() {
         // Write code here that turns the phrase above into concrete actions
@@ -88,6 +109,7 @@ public class ZipProcessingSteps {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @When("the ZIP is submitted for processing")
     public void theZIPIsSubmittedForProcessing() {
         // Write code here that turns the phrase above into concrete actions
@@ -111,20 +133,22 @@ public class ZipProcessingSteps {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the response status is {string}")
     public void theResponseStatusIs(String string) {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the response message is {string}")
     public void theResponseMessageIs(String string) {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the response unsupported file name matches")
     public void theResponseUnsupportedFileNameMatches() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
-
 }

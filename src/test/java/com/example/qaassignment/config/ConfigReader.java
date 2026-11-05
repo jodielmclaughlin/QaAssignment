@@ -44,4 +44,26 @@ public class ConfigReader {
         return get("base.url");
     }
 
+    public static String processPath() {
+        return get("api.process-path");
+    }
+
+    public static String inputFolder() {
+        return get("folders.input");
+    }
+
+    public static String processingFolder() {
+        return get("folders.process");
+    }
+
+    public static String encodedFolder() {
+        return get("folders.encoded");
+    }
+
+    public static String errorFolder() {
+        return get("folders.error");
+    }
+
+
+
 }
