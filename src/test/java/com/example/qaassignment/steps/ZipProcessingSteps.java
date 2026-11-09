@@ -3,6 +3,7 @@ package com.example.qaassignment.steps;
 import com.example.qaassignment.config.ConfigReader;
 import com.example.qaassignment.support.ScenarioContext;
 import com.example.qaassignment.support.TestFileFactory.ArchiveEntry;
+import com.example.qaassignment.support.ZipAssertions;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -19,6 +20,7 @@ import static com.example.qaassignment.config.ConfigReader.*;
 import static com.example.qaassignment.support.TestFileFactory.createZip;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ZipProcessingSteps {
     private final ScenarioContext context;
@@ -141,59 +143,91 @@ public class ZipProcessingSteps {
 
     @Then("{string} exists in the processed folder")
     public void existsInTheProcessedFolder(String expectedFile) {
-
+        Path file = processingFolder().resolve(expectedFile);
+        assertTrue(Files.exists(file), () -> "Expected file to exist" + file);
     }
 
     @Then("{string} exists in the encoded folder")
     public void existsInTheEncodedFolder(String expectedFile) {
-
+        Path file = encodedFolder().resolve(expectedFile);
+        assertTrue(Files.exists(file), () -> "Expected file to exist" + file);
     }
 
     @Then("{string} exists in the error folder")
-    public void existsInTheErrorFolder() {
-
+    public void existsInTheErrorFolder(String expectedFile) {
+        Path file = errorFolder().resolve(expectedFile);
+        assertTrue(Files.exists(file), () -> "Expected file to exist" + file);
     }
 
     @Then("{string} no longer exists in the input folder")
-    public void doesNotExistInTheInputFolder() {
-
+    public void doesNotExistInTheInputFolder(String expectedFile) {
+        Path file = inputFolder().resolve(expectedFile);
+        assertTrue(Files.notExists(file), () -> "Expected file to not exist" + file);
     }
 
     @Then("the base64 output decodes to a valid ZIP")
-    public void theBase64OutputDecodesToAValidZIP() {
-
+    public void theBase64OutputDecodesToAValidZIP() throws IOException{
+        Path encodedPath = encodedOutputPath();
+        byte[] decoded = ZipAssertions.decodeBase64(encodedPath);
+        ZipAssertions.assertValidZip(decoded);
     }
 
     @Then("the decoded ZIP matches the processed ZIP")
-    public void theDecodedZIPMatchesTheProcessedZIP() {
+    public void theDecodedZIPMatchesTheProcessedZIP() throws IOException {
+        String processedFile = context.response().jsonPath().getString("processedFile");
+        byte[] decoded = ZipAssertions.decodeBase64(encodedOutputPath());
+        byte[] processed = Files.readAllBytes(processingFolder().resolve(processedFile));
 
+        assertEquals(processed, decoded);
     }
 
-    @Then("the API throws an exception")
-    public void theAPIThrowsAnException() {
-
-    }
+//    @Then("the API throws an exception")
+//    public void theAPIThrowsAnException() {
+//
+//    }
 
     @Then("the processed ZIP contains only:")
-    public void theProcessedZIPContainsOnly(){
+    public void theProcessedZIPContainsOnly(DataTable table) throws IOException{
+        String processedFile = context.response()
+                .jsonPath()
+                .getString("processedFile");
 
-    }
+        List<String> expected = table.asMaps().stream()
+                .map(row -> row.get("fileName"))
+                .sorted()
+                .toList();
 
-    @Then("the original ZIP no longer exists in the input folder")
-    public void originalZIPNoLongerExistsInTheInputFolder(){
+        List<String> actual = ZipAssertions
+                .entryNames(processingFolder().resolve(processedFile))
+                .stream()
+                .sorted()
+                .toList();
+
+        assertEquals(expected, actual);
 
     }
 
     @Then("no processed ZIP has been created")
-    public void noProcessedZIPHasBeenCreated(){
-
+    public void noProcessedZIPHasBeenCreated() throws IOException{
+        try( var files = Files.list(processingFolder())) {
+            var filesList = files.filter(Files::isRegularFile).toList();
+            assertTrue(filesList.isEmpty());
+        }
     }
 
     @Then("no Base64 output has been created")
-    public void noBase64OutputHasBeenCreated(){
-
+    public void noBase64OutputHasBeenCreated() throws IOException{
+        try( var files = Files.list(encodedFolder())) {
+            var filesList = files.filter(Files::isRegularFile).toList();
+            assertTrue(filesList.isEmpty());
+        }
     }
 
+    private Path encodedOutputPath(){
+        String encodedFile = context.response()
+                .jsonPath().getString("encodedFile");
+        return encodedFolder().resolve(encodedFile);
+    }
 
     private static void emptyFolder(Path folder) throws IOException{
         if(!Files.exists(folder)){

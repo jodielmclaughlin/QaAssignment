@@ -11,7 +11,7 @@ Feature: Validate and process ZIP files
       | notes.txt       | TEXT |
     When the ZIP file "textFile.zip" is submitted for processing
     Then the API response code is 400
-    And the API throws an exception
+#    And the API throws an exception
     And the response status is "FAILED"
     And the response message is "Unsupported file type found"
     And the response unsupported file name is "notes.txt"
@@ -26,7 +26,7 @@ Feature: Validate and process ZIP files
       | notes.txt     | TEXT  |
     When the ZIP file "unsupported.zip" is submitted for processing
     Then the API response code is 400
-    And the API throws an exception
+#    And the API throws an exception
     And the response status is "FAILED"
     And the response message is "Unsupported file type found"
     And the response unsupported file name is "notes.txt"
@@ -52,7 +52,7 @@ Feature: Validate and process ZIP files
       | application.pdf   |
     And the base64 output decodes to a valid ZIP
     And the decoded ZIP matches the processed ZIP
-    And the original ZIP no longer exists in the input folder
+    And "document.zip" no longer exists in the input folder
 
   Scenario: Process a ZIP file containing multiple supported files
     Given  ZIP file named "documents.zip" containing supported files exists in the input folder
@@ -75,7 +75,7 @@ Feature: Validate and process ZIP files
       | photograph.jpeg   |
     And the base64 output decodes to a valid ZIP
     And the decoded ZIP matches the processed ZIP
-    And the original ZIP no longer exists in the input folder
+    And "documents.zip" no longer exists in the input folder
 
 
 
