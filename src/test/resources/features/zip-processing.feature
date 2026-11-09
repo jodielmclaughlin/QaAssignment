@@ -11,9 +11,8 @@ Feature: Validate and process ZIP files
       | notes.txt       | TEXT |
     When the ZIP file "textFile.zip" is submitted for processing
     Then the API response code is 400
-#    And the API throws an exception
     And the response status is "FAILED"
-    And the response message is "Unsupported file type found"
+    And the response message is "Invalid entries in zip file"
     And the response unsupported file name is "notes.txt"
     And "textFile.zip" exists in the error folder
     And "textFile.zip" no longer exists in the input folder
@@ -23,12 +22,11 @@ Feature: Validate and process ZIP files
   Scenario: Reject individually unsupported file types
     Given a ZIP file named "unsupported.zip" containing an unsupported file with:
       | fileName      | type |
-      | notes.txt     | TEXT  |
+      | notes.txt     | TEXT |
     When the ZIP file "unsupported.zip" is submitted for processing
     Then the API response code is 400
-#    And the API throws an exception
     And the response status is "FAILED"
-    And the response message is "Unsupported file type found"
+    And the response message is "Invalid entries in zip file"
     And the response unsupported file name is "notes.txt"
     And "unsupported.zip" exists in the error folder
     And "unsupported.zip" no longer exists in the input folder
@@ -44,9 +42,9 @@ Feature: Validate and process ZIP files
     And the response status is "SUCCESS"
     And the response source file is "document.zip"
     And the response processed file is "document_processed.zip"
-    And the response encoded file is "document_processed_base64.zip"
+    And the response encoded file is "document_processed_base64.txt"
     And "document_processed.zip" exists in the processed folder
-    And "document_processed_base64.zip" exists in the encoded folder
+    And "document_processed_base64.txt" exists in the encoded folder
     And the processed ZIP contains only:
       | fileName          |
       | application.pdf   |
@@ -65,9 +63,9 @@ Feature: Validate and process ZIP files
     And the response status is "SUCCESS"
     And the response source file is "documents.zip"
     And the response processed file is "documents_processed.zip"
-    And the response encoded file is "documents_processed_base64.zip"
+    And the response encoded file is "documents_processed_base64.txt"
     And "documents_processed.zip" exists in the processed folder
-    And "documents_processed_base64.zip" exists in the encoded folder
+    And "documents_processed_base64.txt" exists in the encoded folder
     And the processed ZIP contains only:
       | fileName          |
       | application.pdf   |

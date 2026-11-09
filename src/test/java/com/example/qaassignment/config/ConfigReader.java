@@ -9,9 +9,10 @@ import java.util.Properties;
 
 public class ConfigReader {
 
-    public static final String configFile = "config.properties";
+    public static final String configFile = "application.properties";
     public static final Properties properties = new Properties();
     private static final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+
 
     static {
         try(InputStream input = ConfigReader.class.getClassLoader().getResourceAsStream(configFile)){
@@ -46,7 +47,7 @@ public class ConfigReader {
     }
 
     public static String processPath() {
-        return get("api.process-path");
+        return get("api.process.path");
     }
 
     public static Path inputFolder() {
@@ -54,7 +55,7 @@ public class ConfigReader {
     }
 
     public static Path processingFolder() {
-        return Path.of(get("folders.process"));
+        return Path.of(get("folders.processed"));
     }
 
     public static Path encodedFolder() {
@@ -64,7 +65,5 @@ public class ConfigReader {
     public static Path errorFolder() {
         return Path.of(get("folders.error"));
     }
-
-
 
 }

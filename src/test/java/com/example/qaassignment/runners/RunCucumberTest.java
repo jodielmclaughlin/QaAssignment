@@ -9,7 +9,7 @@ import static io.cucumber.core.options.Constants.GLUE_PROPERTY_NAME;
 @IncludeEngines("cucumber")
 @SelectPackages("features")
 @ConfigurationParameters({
-        @ConfigurationParameter(key= GLUE_PROPERTY_NAME, value="steps, shared"),
+        @ConfigurationParameter(key= GLUE_PROPERTY_NAME, value="com.example.qaassignment.steps, com.example.qaassignment.shared"),
         @ConfigurationParameter(key="cucumber.snippet-type", value ="camelcase")
 })
 public class RunCucumberTest {

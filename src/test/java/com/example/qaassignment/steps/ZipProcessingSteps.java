@@ -8,6 +8,7 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.restassured.http.ContentType;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -92,15 +93,20 @@ public class ZipProcessingSteps {
     @When("the ZIP file {string} is submitted for processing")
     public void theZIPIsSubmittedForProcessing(String fileName) {
         Map<String, String> request = Map.of("fileName", fileName);
+        System.out.println(request);
 
         context.setResponse(
                 given()
                         .baseUri(ConfigReader.baseUrl())
-                        .contentType("application/json")
+                        .contentType(ContentType.JSON)
                         .body(request)
                         .when()
+                        .log()
+                        .all()
                         .post(ConfigReader.processPath())
                         .then()
+                        .log()
+                        .all()
                         .extract()
                         .response()
         );
@@ -180,11 +186,6 @@ public class ZipProcessingSteps {
 
         assertEquals(processed, decoded);
     }
-
-//    @Then("the API throws an exception")
-//    public void theAPIThrowsAnException() {
-//
-//    }
 
     @Then("the processed ZIP contains only:")
     public void theProcessedZIPContainsOnly(DataTable table) throws IOException{

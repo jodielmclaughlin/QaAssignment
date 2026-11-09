@@ -92,6 +92,12 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-picocontainer</artifactId>
+            <version>8.0.4</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
