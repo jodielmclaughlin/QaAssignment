@@ -4,6 +4,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Properties;
 
 public class ConfigReader {
@@ -48,20 +49,20 @@ public class ConfigReader {
         return get("api.process-path");
     }
 
-    public static String inputFolder() {
-        return get("folders.input");
+    public static Path inputFolder() {
+        return Path.of(get("folders.input"));
     }
 
-    public static String processingFolder() {
-        return get("folders.process");
+    public static Path processingFolder() {
+        return Path.of(get("folders.process"));
     }
 
-    public static String encodedFolder() {
-        return get("folders.encoded");
+    public static Path encodedFolder() {
+        return Path.of(get("folders.encoded"));
     }
 
-    public static String errorFolder() {
-        return get("folders.error");
+    public static Path errorFolder() {
+        return Path.of(get("folders.error"));
     }
 
 
