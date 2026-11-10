@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 public final class ZipAssertions {
     private ZipAssertions(){
 
@@ -30,14 +32,14 @@ public final class ZipAssertions {
     }
 
     public static void assertValidZip(byte[] zipBytes) throws IOException{
+        assertNotNull(zipBytes, "Decoded ZIP content should not be null");
+        assertTrue(zipBytes.length > 0, "Decoded ZIP content should not be empty");
 
-    }
-
-    public static List<String> entryNames(byte[] zipBytes) throws IOException{
         try(ZipInputStream input = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
-            return readEntryNames(input);
+            assertNotNull(input.getNextEntry(), "Decoded ZIP should contain at least on entry");
         }
     }
+
 
     private static List<String> readEntryNames(ZipInputStream input) throws IOException{
         List<String> names = new ArrayList<>();

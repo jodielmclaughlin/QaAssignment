@@ -11,6 +11,7 @@ import io.cucumber.java.en.When;
 import io.restassured.http.ContentType;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -20,8 +21,7 @@ import java.util.Map;
 import static com.example.qaassignment.config.ConfigReader.*;
 import static com.example.qaassignment.support.TestFileFactory.createZip;
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ZipProcessingSteps {
     private final ScenarioContext context;
@@ -44,6 +44,26 @@ public class ZipProcessingSteps {
         emptyFolder(processingFolder());
         emptyFolder(encodedFolder());
         emptyFolder(errorFolder());
+    }
+
+    @Given("{string} does not exist in the input folder")
+    public void missingFileDoesNotExistInTheInputFolder(String missingFile) throws IOException{
+        Path filePath = inputFolder().resolve(missingFile);
+
+        Files.deleteIfExists(filePath);
+
+        assertFalse(
+                Files.exists(filePath),
+                "Expected file not to exist in input folder: " + filePath
+        );
+    }
+
+    @Given("a corrupt ZIP file named {string} exists in the input folder")
+    public void corruptZIPFileExistInTheInputFolder(String corruptFile) throws IOException{
+        Files.write(
+                inputFolder().resolve(corruptFile),
+                "this is not a ZIP file".getBytes(StandardCharsets.UTF_8)
+        );
     }
 
     @Given("ZIP file named {string} containing supported files exists in the input folder")
@@ -93,7 +113,6 @@ public class ZipProcessingSteps {
     @When("the ZIP file {string} is submitted for processing")
     public void theZIPIsSubmittedForProcessing(String fileName) {
         Map<String, String> request = Map.of("fileName", fileName);
-        System.out.println(request);
 
         context.setResponse(
                 given()
@@ -101,12 +120,8 @@ public class ZipProcessingSteps {
                         .contentType(ContentType.JSON)
                         .body(request)
                         .when()
-                        .log()
-                        .all()
                         .post(ConfigReader.processPath())
                         .then()
-                        .log()
-                        .all()
                         .extract()
                         .response()
         );
@@ -144,8 +159,28 @@ public class ZipProcessingSteps {
 
     @Then("the response unsupported file name is {string}")
     public void theResponseUnsupportedFileNameIs(String expectedFile) {
-        assertEquals(expectedFile, context.response().jsonPath().getString("fileName"));
+        String actualFile = context.response().jsonPath().getString("details.unsupportedFiles[0]");
+        assertEquals(expectedFile, actualFile);
     }
+
+    @Then("the response unsupported file names are:")
+    public void theResponseUnsupportedFileNamesAre(DataTable table) throws IOException {
+        List<String> expected = table.asMaps().stream()
+                .map(row -> row.get("fileName"))
+                .sorted()
+                .toList();
+
+        List<String> actual = context.response()
+                        .jsonPath()
+                        .getList("details.unsupportedFiles", String.class)
+                        .stream()
+                        .sorted()
+                        .toList();
+
+        assertEquals(expected, actual);
+
+    }
+
 
     @Then("{string} exists in the processed folder")
     public void existsInTheProcessedFolder(String expectedFile) {
@@ -184,7 +219,7 @@ public class ZipProcessingSteps {
         byte[] decoded = ZipAssertions.decodeBase64(encodedOutputPath());
         byte[] processed = Files.readAllBytes(processingFolder().resolve(processedFile));
 
-        assertEquals(processed, decoded);
+        assertArrayEquals(processed, decoded);
     }
 
     @Then("the processed ZIP contains only:")
