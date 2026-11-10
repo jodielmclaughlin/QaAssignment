@@ -1,0 +1,25 @@
+info:
+  name: Corrupted ZIP
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/v1/files"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "fileName": "corrupt.zip"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

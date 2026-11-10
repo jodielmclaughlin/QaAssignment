@@ -1,0 +1,25 @@
+info:
+  name: Individually unsupported file types
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/v1/files"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "fileName": "textFile.zip"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
