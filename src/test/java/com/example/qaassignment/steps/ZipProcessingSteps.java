@@ -100,38 +100,45 @@ public class ZipProcessingSteps {
 
     @Then("the API response code is {int}")
     public void theAPIReturnsStatus(int status) {
-        assertEquals(status, context.response().statusCode());
+        assertEquals(status, context.response().statusCode(), () -> "Expected HTTP response to be " + status +
+                ", but was " + context.response().statusCode());
     }
 
     @Then("the response status is {string}")
     public void theResponseStatusIs(String expectedStatus) {
-        assertEquals(expectedStatus, context.response().jsonPath().getString("status"));
+        assertEquals(expectedStatus, context.response().jsonPath().getString("status"), () ->
+                "Expected HTTP response to be " + expectedStatus + ", but was " +
+                        context.response().jsonPath().getString("status"));
     }
 
     @Then("the response message is {string}")
     public void theResponseMessageIs(String expectedMessage) {
-        assertEquals(expectedMessage, context.response().jsonPath().getString("message"));
+        assertEquals(expectedMessage, context.response().jsonPath().getString("message"), "Expected HTTP response to be " + expectedMessage + ", but was " +
+                context.response().jsonPath().getString("message"));
     }
 
     @Then("the response source file is {string}")
     public void sourceFileIs(String expectedFile) {
-        assertEquals(expectedFile, context.response().jsonPath().getString("sourceFile"));
+        assertEquals(expectedFile, context.response().jsonPath().getString("sourceFile"), "Expected HTTP response to be " + expectedFile + ", but was " +
+                context.response().jsonPath().getString("sourceFile"));
     }
 
     @Then("the response processed file is {string}")
     public void theResponseProcessedFileIs(String expectedFile) {
-        assertEquals(expectedFile, context.response().jsonPath().getString("processedFile"));
+        assertEquals(expectedFile, context.response().jsonPath().getString("processedFile"), "Expected HTTP response to be " + expectedFile + ", but was " +
+                context.response().jsonPath().getString("processedFile"));
     }
 
     @Then("the response encoded file is {string}")
     public void theResponseEncodedFileIs(String expectedFile) {
-        assertEquals(expectedFile, context.response().jsonPath().getString("encodedFile"));
+        assertEquals(expectedFile, context.response().jsonPath().getString("encodedFile"), "Expected HTTP response to be " + expectedFile + ", but was " +
+                context.response().jsonPath().getString("encodedFile"));
     }
 
     @Then("the response unsupported file name is {string}")
     public void theResponseUnsupportedFileNameIs(String expectedFile) {
         String actualFile = context.response().jsonPath().getString("details.unsupportedFiles[0]");
-        assertEquals(expectedFile, actualFile);
+        assertEquals(expectedFile, actualFile, "Expected file name to be " + expectedFile + "but was " + actualFile);
     }
 
     @Then("the response unsupported file names are:")
@@ -148,7 +155,7 @@ public class ZipProcessingSteps {
                         .sorted()
                         .toList();
 
-        assertEquals(expected, actual);
+        assertEquals(expected, actual, "Expected unsupported file names to contain " + expected + "but actually contains " + actual);
 
     }
 
@@ -177,7 +184,7 @@ public class ZipProcessingSteps {
         byte[] decoded = ZipAssertions.decodeBase64(encodedOutputPath());
         byte[] processed = Files.readAllBytes(processedFolder().resolve(processedFile));
 
-        assertArrayEquals(processed, decoded);
+        assertArrayEquals(processed, decoded, "Expected decoded ZIP to match processed ZIP, but it does not.");
     }
 
     @Then("the processed ZIP contains only:")
@@ -197,7 +204,8 @@ public class ZipProcessingSteps {
                 .sorted()
                 .toList();
 
-        assertEquals(expected, actual);
+        assertEquals(expected, actual, "Expected processed ZIP to contain " + expected + "but actually contains " + actual );
+
 
     }
 
