@@ -23,8 +23,8 @@ Feature: Validate and process ZIP files
     And no processed ZIP has been created
     And no Base64 output has been created
 
-  Scenario: Reject individually unsupported file types
-    Given a ZIP file named "textFile.zip" contains a TXT file with:
+  Scenario: Reject the complete ZIP when one entry is unsupported
+    Given a ZIP file named "textFile.zip" exists in the input folder with:
       | fileName        | type |
       | application.pdf | PDF  |
       | notes.txt       | TEXT |
@@ -38,8 +38,8 @@ Feature: Validate and process ZIP files
     And no processed ZIP has been created
     And no Base64 output has been created
 
-  Scenario Outline: Reject unsupported file type
-    Given a ZIP file named "unsupported.zip" containing an unsupported file with:
+  Scenario Outline: Reject a ZIP containing an unsupported file type
+    Given a ZIP file named "unsupported.zip" exists in the input folder with:
       | fileName      | type   |
       | <fileName>    | <type> |
     When the ZIP file "unsupported.zip" is submitted for processing
@@ -59,7 +59,7 @@ Feature: Validate and process ZIP files
       | spreadsheet.xlsx | XLSX |
 
   Scenario: Show multiple rejected unsupported file types in response
-    Given a ZIP file named "unsupportedMulti.zip" containing an unsupported file with:
+    Given a ZIP file named "unsupportedMulti.zip" exists in the input folder with:
       | fileName      | type |
       | notes.txt     | TEXT |
       | jsonFile.json     | JSON |
@@ -79,7 +79,7 @@ Feature: Validate and process ZIP files
     And no Base64 output has been created
 
   Scenario: Process a ZIP containing one supported file
-    Given a ZIP file named "document.zip" containing a supported file exists in the input folder
+    Given a ZIP file named "document.zip" exists in the input folder with:
       | fileName          | type |
       | application.pdf   | PDF  |
     When the ZIP file "document.zip" is submitted for processing
@@ -99,7 +99,7 @@ Feature: Validate and process ZIP files
     And "document.zip" no longer exists in the input folder
 
   Scenario: Process a ZIP file containing multiple supported files
-    Given  ZIP file named "documents.zip" containing supported files exists in the input folder
+    Given  a ZIP file named "documents.zip" exists in the input folder with:
       | fileName          | type |
       | application.pdf   | PDF  |
       | identity.jpg      | JPEG |

@@ -66,49 +66,17 @@ public class ZipProcessingSteps {
         );
     }
 
-    @Given("ZIP file named {string} containing supported files exists in the input folder")
-    public void aZIPContainingSupportedFilesExistsInTheInputFolder(String zipName, DataTable table) throws IOException {
+    @Given("a ZIP file named {string} exists in the input folder with:")
+    public void zipExistsInTheInputFolder(String zipName, DataTable table) throws IOException{
         List<ArchiveEntry> entries = table.asMaps().stream()
                 .map(row -> new ArchiveEntry(
                         row.get("fileName"),
                         row.get("type")
                 ))
                 .toList();
-        createZip(inputFolder(), zipName, entries);
+                createZip(inputFolder(), zipName,entries);
     }
 
-    @Given("a ZIP file named {string} contains a TXT file with:")
-    public void aZIPContainingATXTFileExistsInTheInputFolder(String zipName, DataTable table) throws IOException {
-        List<ArchiveEntry> entries = table.asMaps().stream()
-                .map(row -> new ArchiveEntry(
-                        row.get("fileName"),
-                        row.get("type")
-                ))
-                .toList();
-        createZip(inputFolder(), zipName, entries);
-    }
-
-    @Given("a ZIP file named {string} containing an unsupported file with:")
-    public void aZIPContainingAnUnsupportedFileExistsInTheInputFolder(String zipName, DataTable table) throws IOException {
-        List<ArchiveEntry> entries = table.asMaps().stream()
-                .map(row -> new ArchiveEntry(
-                        row.get("fileName"),
-                        row.get("type")
-                ))
-                .toList();
-        createZip(inputFolder(), zipName, entries);
-    }
-
-    @Given("a ZIP file named {string} containing a supported file exists in the input folder")
-    public void aZIPContainingOneSupportedFilesExistsInTheInputFolder(String zipName, DataTable table) throws IOException {
-        List<ArchiveEntry> entries = table.asMaps().stream()
-                .map(row -> new ArchiveEntry(
-                        row.get("fileName"),
-                        row.get("type")
-                ))
-                .toList();
-        createZip(inputFolder(), zipName, entries);
-    }
 
     @When("the ZIP file {string} is submitted for processing")
     public void theZIPIsSubmittedForProcessing(String fileName) {
@@ -164,7 +132,7 @@ public class ZipProcessingSteps {
     }
 
     @Then("the response unsupported file names are:")
-    public void theResponseUnsupportedFileNamesAre(DataTable table) throws IOException {
+    public void theResponseUnsupportedFileNamesAre(DataTable table) {
         List<String> expected = table.asMaps().stream()
                 .map(row -> row.get("fileName"))
                 .sorted()
@@ -180,7 +148,6 @@ public class ZipProcessingSteps {
         assertEquals(expected, actual);
 
     }
-
 
     @Then("{string} exists in the processed folder")
     public void existsInTheProcessedFolder(String expectedFile) {
