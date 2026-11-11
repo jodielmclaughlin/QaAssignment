@@ -1,10 +1,11 @@
+@zip-processing
 Feature: Validate and process ZIP files
 
   Background:
     Given the ZIP processing folders exist
     And the ZIP processing folders are empty
 
-
+@negative
   Scenario: Reject a request when the ZIP does not exist
     Given "missing.zip" does not exist in the input folder
     When the ZIP file "missing.zip" is submitted for processing
@@ -14,6 +15,7 @@ Feature: Validate and process ZIP files
     And the processed folder contains no files
     And the encoded folder contains no files
 
+  @negative
   Scenario: Reject a corrupt ZIP file
     Given a corrupt ZIP file named "corrupt.zip" exists in the input folder
     When the ZIP file "corrupt.zip" is submitted for processing
@@ -23,6 +25,7 @@ Feature: Validate and process ZIP files
     And the processed folder contains no files
     And the encoded folder contains no files
 
+  @negative
   Scenario: Reject the complete ZIP when one entry is unsupported
     Given a ZIP file named "textFile.zip" exists in the input folder with:
       | fileName        | type |
@@ -38,6 +41,7 @@ Feature: Validate and process ZIP files
     And the processed folder contains no files
     And the encoded folder contains no files
 
+  @negative
   Scenario Outline: Reject a ZIP containing an unsupported file type
     Given a ZIP file named "unsupported.zip" exists in the input folder with:
       | fileName      | type   |
@@ -58,6 +62,7 @@ Feature: Validate and process ZIP files
       | data.json        | JSON |
       | spreadsheet.xlsx | XLSX |
 
+  @negative
   Scenario: Show multiple rejected unsupported file types in response
     Given a ZIP file named "unsupportedMulti.zip" exists in the input folder with:
       | fileName      | type |
@@ -78,6 +83,7 @@ Feature: Validate and process ZIP files
     And the processed folder contains no files
     And the encoded folder contains no files
 
+   @positive
   Scenario: Process a ZIP containing one supported file
     Given a ZIP file named "document.zip" exists in the input folder with:
       | fileName          | type |
@@ -98,6 +104,7 @@ Feature: Validate and process ZIP files
     And the decoded ZIP matches the processed ZIP
     And "document.zip" no longer exists in the input folder
 
+  @positive
   Scenario: Process a ZIP file containing multiple supported files
     Given  a ZIP file named "documents.zip" exists in the input folder with:
       | fileName          | type |
