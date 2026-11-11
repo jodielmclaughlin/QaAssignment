@@ -11,8 +11,8 @@ Feature: Validate and process ZIP files
     Then the API response code is 400
     And the response status is "FAILED"
     And the response message is "Input file does not exist: missing.zip"
-    And no processed ZIP has been created
-    And no Base64 output has been created
+    And the processed folder contains no files
+    And the encoded folder contains no files
 
   Scenario: Reject a corrupt ZIP file
     Given a corrupt ZIP file named "corrupt.zip" exists in the input folder
@@ -20,8 +20,8 @@ Feature: Validate and process ZIP files
     Then the API response code is 400
     And the response status is "FAILED"
     And "corrupt.zip" exists in the error folder
-    And no processed ZIP has been created
-    And no Base64 output has been created
+    And the processed folder contains no files
+    And the encoded folder contains no files
 
   Scenario: Reject the complete ZIP when one entry is unsupported
     Given a ZIP file named "textFile.zip" exists in the input folder with:
@@ -35,8 +35,8 @@ Feature: Validate and process ZIP files
     And the response unsupported file name is "notes.txt"
     And "textFile.zip" exists in the error folder
     And "textFile.zip" no longer exists in the input folder
-    And no processed ZIP has been created
-    And no Base64 output has been created
+    And the processed folder contains no files
+    And the encoded folder contains no files
 
   Scenario Outline: Reject a ZIP containing an unsupported file type
     Given a ZIP file named "unsupported.zip" exists in the input folder with:
@@ -49,8 +49,8 @@ Feature: Validate and process ZIP files
     And the response unsupported file name is "<fileName>"
     And "unsupported.zip" exists in the error folder
     And "unsupported.zip" no longer exists in the input folder
-    And no processed ZIP has been created
-    And no Base64 output has been created
+    And the processed folder contains no files
+    And the encoded folder contains no files
 
     Examples:
       | fileName         | type |
@@ -75,8 +75,8 @@ Feature: Validate and process ZIP files
       | spreadsheet.xlsx  |
     And "unsupportedMulti.zip" exists in the error folder
     And "unsupportedMulti.zip" no longer exists in the input folder
-    And no processed ZIP has been created
-    And no Base64 output has been created
+    And the processed folder contains no files
+    And the encoded folder contains no files
 
   Scenario: Process a ZIP containing one supported file
     Given a ZIP file named "document.zip" exists in the input folder with:
