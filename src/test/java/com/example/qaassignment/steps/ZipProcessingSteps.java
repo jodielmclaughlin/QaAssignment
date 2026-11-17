@@ -1,6 +1,7 @@
 package com.example.qaassignment.steps;
 
-import com.example.qaassignment.config.ConfigReader;
+import com.example.qaassignment.shared.ZipProcessingClient;
+import com.example.qaassignment.support.FileSystemSupport;
 import com.example.qaassignment.support.ScenarioContext;
 import com.example.qaassignment.support.TestFileFactory.ArchiveEntry;
 import com.example.qaassignment.support.ZipAssertions;
@@ -8,42 +9,56 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.restassured.http.ContentType;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 import static com.example.qaassignment.config.ConfigReader.*;
 import static com.example.qaassignment.support.TestFileFactory.createZip;
-import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ZipProcessingSteps {
     private final ScenarioContext context;
+    private final ZipProcessingClient client;
 
-    public ZipProcessingSteps(ScenarioContext context) {
+    public ZipProcessingSteps(ScenarioContext context, ZipProcessingClient client) {
         this.context = context;
+        this.client = client;
+    }
+
+    private List<Path> processingFolders() {
+        return List.of(
+                inputFolder(),
+                processedFolder(),
+                encodedFolder(),
+                errorFolder()
+        );
+    }
+
+    private Path folder (String folderName){
+        return switch (folderName.toLowerCase()) {
+            case "input" -> inputFolder();
+            case "processed" -> processedFolder();
+            case "encoded" -> encodedFolder();
+            case "error" -> errorFolder();
+
+            default -> throw new IllegalArgumentException("Unknown processing folder: " + folderName);
+        };
     }
 
     @Given("the ZIP processing folders exist")
     public void theZIPProcessingFoldersExist() throws IOException {
-        Files.createDirectories(inputFolder());
-        Files.createDirectories(processingFolder());
-        Files.createDirectories(encodedFolder());
-        Files.createDirectories(errorFolder());
+        FileSystemSupport.createDirectories(processingFolders());
     }
 
     @Given("the ZIP processing folders are empty")
     public void theZIPProcessingFoldersAreEmpty() throws IOException{
-        emptyFolder(inputFolder());
-        emptyFolder(processingFolder());
-        emptyFolder(encodedFolder());
-        emptyFolder(errorFolder());
+        for(Path folder : processingFolders()){
+        FileSystemSupport.emptyDirectory(folder);
+        }
     }
 
     @Given("{string} does not exist in the input folder")
@@ -66,105 +81,68 @@ public class ZipProcessingSteps {
         );
     }
 
-    @Given("ZIP file named {string} containing supported files exists in the input folder")
-    public void aZIPContainingSupportedFilesExistsInTheInputFolder(String zipName, DataTable table) throws IOException {
+    @Given("a ZIP file named {string} exists in the input folder with:")
+    public void zipExistsInTheInputFolder(String zipName, DataTable table) throws IOException{
         List<ArchiveEntry> entries = table.asMaps().stream()
                 .map(row -> new ArchiveEntry(
                         row.get("fileName"),
                         row.get("type")
                 ))
                 .toList();
-        createZip(inputFolder(), zipName, entries);
+                createZip(inputFolder(), zipName,entries);
     }
 
-    @Given("a ZIP file named {string} contains a TXT file with:")
-    public void aZIPContainingATXTFileExistsInTheInputFolder(String zipName, DataTable table) throws IOException {
-        List<ArchiveEntry> entries = table.asMaps().stream()
-                .map(row -> new ArchiveEntry(
-                        row.get("fileName"),
-                        row.get("type")
-                ))
-                .toList();
-        createZip(inputFolder(), zipName, entries);
-    }
-
-    @Given("a ZIP file named {string} containing an unsupported file with:")
-    public void aZIPContainingAnUnsupportedFileExistsInTheInputFolder(String zipName, DataTable table) throws IOException {
-        List<ArchiveEntry> entries = table.asMaps().stream()
-                .map(row -> new ArchiveEntry(
-                        row.get("fileName"),
-                        row.get("type")
-                ))
-                .toList();
-        createZip(inputFolder(), zipName, entries);
-    }
-
-    @Given("a ZIP file named {string} containing a supported file exists in the input folder")
-    public void aZIPContainingOneSupportedFilesExistsInTheInputFolder(String zipName, DataTable table) throws IOException {
-        List<ArchiveEntry> entries = table.asMaps().stream()
-                .map(row -> new ArchiveEntry(
-                        row.get("fileName"),
-                        row.get("type")
-                ))
-                .toList();
-        createZip(inputFolder(), zipName, entries);
-    }
 
     @When("the ZIP file {string} is submitted for processing")
     public void theZIPIsSubmittedForProcessing(String fileName) {
-        Map<String, String> request = Map.of("fileName", fileName);
-
-        context.setResponse(
-                given()
-                        .baseUri(ConfigReader.baseUrl())
-                        .contentType(ContentType.JSON)
-                        .body(request)
-                        .when()
-                        .post(ConfigReader.processPath())
-                        .then()
-                        .extract()
-                        .response()
-        );
+        context.setResponse(client.process(fileName));
     }
 
     @Then("the API response code is {int}")
     public void theAPIReturnsStatus(int status) {
-        assertEquals(status, context.response().statusCode());
+        assertEquals(status, context.response().statusCode(), () -> "Expected HTTP response to be " + status +
+                ", but was " + context.response().statusCode());
     }
 
     @Then("the response status is {string}")
     public void theResponseStatusIs(String expectedStatus) {
-        assertEquals(expectedStatus, context.response().jsonPath().getString("status"));
+        assertEquals(expectedStatus, context.response().jsonPath().getString("status"), () ->
+                "Expected HTTP response to be " + expectedStatus + ", but was " +
+                        context.response().jsonPath().getString("status"));
     }
 
     @Then("the response message is {string}")
     public void theResponseMessageIs(String expectedMessage) {
-        assertEquals(expectedMessage, context.response().jsonPath().getString("message"));
+        assertEquals(expectedMessage, context.response().jsonPath().getString("message"), "Expected HTTP response to be " + expectedMessage + ", but was " +
+                context.response().jsonPath().getString("message"));
     }
 
     @Then("the response source file is {string}")
     public void sourceFileIs(String expectedFile) {
-        assertEquals(expectedFile, context.response().jsonPath().getString("sourceFile"));
+        assertEquals(expectedFile, context.response().jsonPath().getString("sourceFile"), "Expected HTTP response to be " + expectedFile + ", but was " +
+                context.response().jsonPath().getString("sourceFile"));
     }
 
     @Then("the response processed file is {string}")
     public void theResponseProcessedFileIs(String expectedFile) {
-        assertEquals(expectedFile, context.response().jsonPath().getString("processedFile"));
+        assertEquals(expectedFile, context.response().jsonPath().getString("processedFile"), "Expected HTTP response to be " + expectedFile + ", but was " +
+                context.response().jsonPath().getString("processedFile"));
     }
 
     @Then("the response encoded file is {string}")
     public void theResponseEncodedFileIs(String expectedFile) {
-        assertEquals(expectedFile, context.response().jsonPath().getString("encodedFile"));
+        assertEquals(expectedFile, context.response().jsonPath().getString("encodedFile"), "Expected HTTP response to be " + expectedFile + ", but was " +
+                context.response().jsonPath().getString("encodedFile"));
     }
 
     @Then("the response unsupported file name is {string}")
     public void theResponseUnsupportedFileNameIs(String expectedFile) {
         String actualFile = context.response().jsonPath().getString("details.unsupportedFiles[0]");
-        assertEquals(expectedFile, actualFile);
+        assertEquals(expectedFile, actualFile, "Expected file name to be " + expectedFile + "but was " + actualFile);
     }
 
     @Then("the response unsupported file names are:")
-    public void theResponseUnsupportedFileNamesAre(DataTable table) throws IOException {
+    public void theResponseUnsupportedFileNamesAre(DataTable table) {
         List<String> expected = table.asMaps().stream()
                 .map(row -> row.get("fileName"))
                 .sorted()
@@ -177,32 +155,19 @@ public class ZipProcessingSteps {
                         .sorted()
                         .toList();
 
-        assertEquals(expected, actual);
+        assertEquals(expected, actual, "Expected unsupported file names to contain " + expected + "but actually contains " + actual);
 
     }
 
-
-    @Then("{string} exists in the processed folder")
-    public void existsInTheProcessedFolder(String expectedFile) {
-        Path file = processingFolder().resolve(expectedFile);
-        assertTrue(Files.exists(file), () -> "Expected file to exist" + file);
+    @Then("{string} exists in the {word} folder")
+    public void existsInTheFolder(String expectedFile, String folderName) {
+        Path file = folder(folderName).resolve(expectedFile);
+        assertTrue(Files.isRegularFile(file), () -> "Expected file to exist" + file);
     }
 
-    @Then("{string} exists in the encoded folder")
-    public void existsInTheEncodedFolder(String expectedFile) {
-        Path file = encodedFolder().resolve(expectedFile);
-        assertTrue(Files.exists(file), () -> "Expected file to exist" + file);
-    }
-
-    @Then("{string} exists in the error folder")
-    public void existsInTheErrorFolder(String expectedFile) {
-        Path file = errorFolder().resolve(expectedFile);
-        assertTrue(Files.exists(file), () -> "Expected file to exist" + file);
-    }
-
-    @Then("{string} no longer exists in the input folder")
-    public void doesNotExistInTheInputFolder(String expectedFile) {
-        Path file = inputFolder().resolve(expectedFile);
+    @Then("{string} no longer exists in the {word} folder")
+    public void doesNotExistInTheInputFolder(String expectedFile, String folderName) {
+        Path file = folder(folderName).resolve(expectedFile);
         assertTrue(Files.notExists(file), () -> "Expected file to not exist" + file);
     }
 
@@ -217,9 +182,9 @@ public class ZipProcessingSteps {
     public void theDecodedZIPMatchesTheProcessedZIP() throws IOException {
         String processedFile = context.response().jsonPath().getString("processedFile");
         byte[] decoded = ZipAssertions.decodeBase64(encodedOutputPath());
-        byte[] processed = Files.readAllBytes(processingFolder().resolve(processedFile));
+        byte[] processed = Files.readAllBytes(processedFolder().resolve(processedFile));
 
-        assertArrayEquals(processed, decoded);
+        assertArrayEquals(processed, decoded, "Expected decoded ZIP to match processed ZIP, but it does not.");
     }
 
     @Then("the processed ZIP contains only:")
@@ -234,29 +199,21 @@ public class ZipProcessingSteps {
                 .toList();
 
         List<String> actual = ZipAssertions
-                .entryNames(processingFolder().resolve(processedFile))
+                .entryNames(processedFolder().resolve(processedFile))
                 .stream()
                 .sorted()
                 .toList();
 
-        assertEquals(expected, actual);
+        assertEquals(expected, actual, "Expected processed ZIP to contain " + expected + "but actually contains " + actual );
+
 
     }
 
-    @Then("no processed ZIP has been created")
-    public void noProcessedZIPHasBeenCreated() throws IOException{
-        try( var files = Files.list(processingFolder())) {
-            var filesList = files.filter(Files::isRegularFile).toList();
-            assertTrue(filesList.isEmpty());
-        }
-    }
-
-    @Then("no Base64 output has been created")
-    public void noBase64OutputHasBeenCreated() throws IOException{
-        try( var files = Files.list(encodedFolder())) {
-            var filesList = files.filter(Files::isRegularFile).toList();
-            assertTrue(filesList.isEmpty());
-        }
+    @Then("the {word} folder contains no files")
+    public void folderContainsNoFiles(String folderName) throws IOException{
+        Path folder = folder(folderName);
+        List<Path> files = FileSystemSupport.regularFiles(folder);
+        assertTrue(files.isEmpty(), () -> "Expected no files in " + folder + ", but found: " + files);
     }
 
     private Path encodedOutputPath(){
@@ -265,17 +222,4 @@ public class ZipProcessingSteps {
         return encodedFolder().resolve(encodedFile);
     }
 
-    private static void emptyFolder(Path folder) throws IOException{
-        if(!Files.exists(folder)){
-            return;
-        }
-        try(var paths = Files.walk(folder)) {
-            for(Path path: paths
-                    .sorted(Comparator.reverseOrder())
-                    .filter(candidate -> !candidate.equals(folder))
-                    .toList()){
-                    Files.deleteIfExists(path);
-            }
-        }
-    }
 }
