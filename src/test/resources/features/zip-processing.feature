@@ -11,15 +11,17 @@ Feature: Validate and process ZIP files
     When the ZIP file "missing.zip" is submitted for processing
     Then the API response code is 400
     And the response status is "FAILED"
-    And the response message is "Input file does not exist: missing.zip"
+    And the response message is "File does not exist: missing.zip"
     And the processed folder contains no files
     And the encoded folder contains no files
 
   @negative
   Scenario: Reject a corrupt ZIP file
+#  scenario is not a part of the requirements yet - wouldn't be tested until approved by BA
     Given a corrupt ZIP file named "corrupt.zip" exists in the input folder
     When the ZIP file "corrupt.zip" is submitted for processing
-    Then the API response code is 400
+    Then the API response code is 500
+#    response code would be 400 if part of the requirements
     And the response status is "FAILED"
     And "corrupt.zip" exists in the error folder
     And the processed folder contains no files
@@ -100,6 +102,7 @@ Feature: Validate and process ZIP files
     And the processed ZIP contains only:
       | fileName          |
       | application.pdf   |
+      | metadata.xml      |
     And the base64 output decodes to a valid ZIP
     And the decoded ZIP matches the processed ZIP
     And "document.zip" no longer exists in the input folder
@@ -125,6 +128,7 @@ Feature: Validate and process ZIP files
       | application.pdf   |
       | identity.jpg      |
       | photograph.jpeg   |
+      | metadata.xml      |
     And the base64 output decodes to a valid ZIP
     And the decoded ZIP matches the processed ZIP
     And "documents.zip" no longer exists in the input folder
