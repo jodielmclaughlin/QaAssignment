@@ -54,7 +54,7 @@ public class ConfigReader {
         return Path.of(get("folders.input"));
     }
 
-    public static Path processingFolder() {
+    public static Path processedFolder() {
         return Path.of(get("folders.processed"));
     }
 
