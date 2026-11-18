@@ -100,7 +100,7 @@ public class ZipProcessingSteps {
 
     @Then("the API response code is {int}")
     public void theAPIReturnsStatus(int status) {
-        assertEquals(status, context.response().statusCode(), () -> "Expected HTTP response to be " + status +
+        assertEquals(status, context.response().statusCode(), () -> "Expected HTTP response to be status " + status +
                 ", but was " + context.response().statusCode());
     }
 
