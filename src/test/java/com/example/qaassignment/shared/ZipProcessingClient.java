@@ -19,11 +19,8 @@ public class ZipProcessingClient {
                         .contentType(ContentType.JSON)
                         .body(request)
                         .when()
-                        .log()
-                        .all()
                         .post(ConfigReader.processPath())
                         .then()
-                        .log().all()
                         .extract()
                         .response();
 
