@@ -24,6 +24,11 @@ pipeline {
         always {
             junit testResults: 'target/surefire-reports/*.xml',
                   allowEmptyResults: true
+
+            cucumber(
+                  jsonReportDirectory: 'target/cucumber-reports',
+                  fileIncludePattern: 'report.json'
+            )
         }
     }
 }
