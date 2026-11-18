@@ -25,7 +25,7 @@ pipeline {
                   allowEmptyResults: true
 
             cucumber(
-                jsonReportDirectory: 'target',
+                jsonReportDirectory: 'target/cucumber-reports',
                 fileIncludePattern: 'report.json'
             )
         }
