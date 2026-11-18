@@ -26,7 +26,7 @@ pipeline {
 
             cucumber(
                 jsonReportDirectory: 'target',
-                fileIncludePattern: 'cucumber-report.json'
+                fileIncludePattern: 'report.json'
             )
         }
     }
