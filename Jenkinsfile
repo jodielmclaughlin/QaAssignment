@@ -44,7 +44,7 @@ pipeline {
                 dir('api') {
                     withEnv(['JENKINS_NODE_COOKIE=dontKillAPI']) {
                         powershell '''
-                            $jar = Get-ChildItem -Path "file-processing-service\\target" -Filter *.jar |
+                            $jar = Get-ChildItem -Path target -Filter *.jar |
                                 Where-Object { $_.Name -notlike "*.original" } |
                                 Select-Object -First 1
 
