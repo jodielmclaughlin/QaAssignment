@@ -43,12 +43,12 @@ pipeline {
             steps {
                 dir('api') {
                     powershell '''
-                        $jar = Get-ChildItem -Path target -Filter *.jar |
+                        $jar = Get-ChildItem -Path "file-processing-service\\target" -Filter *.jar |
                             Where-Object { $_.Name -notlike "*.original" } |
                             Select-Object -First 1
 
                         if (-not $jar) {
-                            throw "No API JAR found in target"
+                            throw "No API JAR found in file-processing-service/target"
                         }
 
                         Write-Host "Starting API: $($jar.FullName)"
@@ -59,6 +59,8 @@ pipeline {
                             -PassThru
 
                         $process.Id | Out-File -FilePath api.pid
+
+                        Write-Host "API started with process ID $($process.Id)"
                     '''
                 }
             }
@@ -86,6 +88,21 @@ pipeline {
                   jsonReportDirectory: 'target/cucumber-reports',
                   fileIncludePattern: 'report.json'
             )
+
+            powershell '''
+                        $pidFile = "api\\api.pid"
+
+                        if (Test-Path $pidFile) {
+
+                            $apiPid = Get-Content $pidFile
+
+                            Write-Host "Stopping API process $apiPid"
+
+                            Stop-Process -Id $apiPid -Force -ErrorAction SilentlyContinue
+
+                            Remove-Item $pidFile -Force
+                        }
+                    '''
         }
     }
 }
