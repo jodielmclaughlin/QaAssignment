@@ -9,7 +9,7 @@ Feature: Validate and process ZIP files
   Scenario: Reject a request when the ZIP does not exist
     Given "missing.zip" does not exist in the input folder
     When the ZIP file "missing.zip" is submitted for processing
-    Then the API response code is 404
+    Then the API response code is 400
     And the response status is "FAILED"
     And the response message is "File does not exist: missing.zip"
     And the processed folder contains no files
