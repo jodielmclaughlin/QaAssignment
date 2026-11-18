@@ -42,27 +42,71 @@ pipeline {
         stage('Start API') {
             steps {
                 dir('api') {
-                    powershell '''
-                        $jar = Get-ChildItem -Path "file-processing-service\\target" -Filter *.jar |
-                            Where-Object { $_.Name -notlike "*.original" } |
-                            Select-Object -First 1
+                    withEnv(['JENKINS_NODE_COOKIE=dontKillAPI']) {
+                        powershell '''
+                            $jar = Get-ChildItem -Path "file-processing-service\\target" -Filter *.jar |
+                                Where-Object { $_.Name -notlike "*.original" } |
+                                Select-Object -First 1
 
-                        if (-not $jar) {
-                            throw "No API JAR found in file-processing-service/target"
+                            if (-not $jar) {
+                                throw "No API JAR found"
+                            }
+
+                            Write-Host "Starting API: $($jar.FullName)"
+
+                            $logFile = Join-Path $PWD "api-output.log"
+                            $errorFile = Join-Path $PWD "api-error.log"
+
+                            $process = Start-Process `
+                                -FilePath "java" `
+                                -ArgumentList "-jar", "`"$($jar.FullName)`"" `
+                                -RedirectStandardOutput $logFile `
+                                -RedirectStandardError $errorFile `
+                                -PassThru
+
+                            $process.Id | Out-File "api.pid"
+
+                            Write-Host "Started API process: $($process.Id)"
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Wait for API') {
+            steps {
+                powershell '''
+                    $ready = $false
+
+                    for ($i = 1; $i -le 30; $i++) {
+
+                        Write-Host "Checking API - attempt $i of 30"
+
+                        if (Test-NetConnection localhost -Port 8080 -InformationLevel Quiet) {
+                            Write-Host "API is ready on localhost:8080"
+                            $ready = $true
+                            break
                         }
 
-                        Write-Host "Starting API: $($jar.FullName)"
+                        Start-Sleep -Seconds 2
+                    }
 
-                        $process = Start-Process `
-                            -FilePath "java" `
-                            -ArgumentList "-jar", $jar.FullName `
-                            -PassThru
+                    if (-not $ready) {
+                        Write-Host "API failed to start"
 
-                        $process.Id | Out-File -FilePath api.pid
+                        if (Test-Path "api\\api-output.log") {
+                            Write-Host "=== API OUTPUT ==="
+                            Get-Content "api\\api-output.log"
+                        }
 
-                        Write-Host "API started with process ID $($process.Id)"
-                    '''
-                }
+                        if (Test-Path "api\\api-error.log") {
+                            Write-Host "=== API ERRORS ==="
+                            Get-Content "api\\api-error.log"
+                        }
+
+                        throw "API did not become available on localhost:8080"
+                    }
+                '''
             }
         }
 
