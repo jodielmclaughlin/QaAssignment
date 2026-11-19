@@ -39,38 +39,35 @@ pipeline {
             }
         }
 
-       stage('Start API') {
-           steps {
-               dir('api') {
+        stage('Start API') {
+            steps {
+                dir('api') {
+                    script {
+                        def apiJar
 
-                   powershell '''
-                       $jar = Get-ChildItem -Path . -Filter "*.jar" -Recurse |
-                           Where-Object {
-                               $_.FullName -match "\\\\target\\\\" -and
-                               $_.Name -notlike "*.original"
-                           } |
-                           Select-Object -First 1
+                        if (env.BRANCH_NAME == 'metadataTests') {
+                            apiJar = 'target\\file-processor-0.0.1-SNAPSHOT.jar'
+                        } else if (env.BRANCH_NAME == 'main') {
+                            apiJar = 'file-processing-service\\target\\file-processing-service-0.0.1-SNAPSHOT.jar'
+                        } else {
+                            error "No API JAR configured for branch ${env.BRANCH_NAME}"
+                        }
 
-                       if (-not $jar) {
-                           throw "No API JAR found"
-                       }
+                        echo "Starting API using ${apiJar}"
 
-                       Write-Host "API JAR found: $($jar.FullName)"
-
-                       $jar.FullName | Out-File -FilePath api-jar.txt
-                   '''
-
-                   withEnv(['JENKINS_NODE_COOKIE=dontKillAPI']) {
-                       bat '''
-                           set /p API_JAR=<api-jar.txt
-                           echo Starting API: %API_JAR%
-                           start "" /B java -jar "%API_JAR%" --server.port=8080 > api-output.log 2> api-error.log
-                           echo API start command completed
-                       '''
-                   }
-               }
-           }
-       }
+                        withEnv([
+                            'JENKINS_NODE_COOKIE=dontKillAPI',
+                            "API_JAR=${apiJar}"
+                        ]) {
+                            bat '''
+                                start "" /B java -jar "%API_JAR%" --server.port=8080 > api-output.log 2> api-error.log
+                                echo API start command completed
+                            '''
+                        }
+                    }
+                }
+            }
+        }
 
 
         stage('Wait for API') {
