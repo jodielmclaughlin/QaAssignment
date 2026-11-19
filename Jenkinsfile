@@ -43,33 +43,13 @@ pipeline {
             steps {
                 dir('api') {
                     withEnv(['JENKINS_NODE_COOKIE=dontKillAPI']) {
-                        powershell '''
-                            $jar = Get-ChildItem -Path target -Filter *.jar |
-                                Where-Object { $_.Name -notlike "*.original" } |
-                                Select-Object -First 1
-
-                            if (-not $jar) {
-                                throw "No API JAR found"
-                            }
-
-                            Write-Host "Starting API: $($jar.FullName)"
-
-                            $logFile = Join-Path $PWD "api-output.log"
-                            $errorFile = Join-Path $PWD "api-error.log"
-
-                            $process = Start-Process `
-                                -FilePath "java" `
-                                -ArgumentList "-jar", "`"$($jar.FullName)`"" `
-                                -RedirectStandardOutput $logFile `
-                                -RedirectStandardError $errorFile `
-                                -PassThru
-
-                            $process.Id | Out-File "api.pid"
-
-                            Write-Host "Started API process: $($process.Id)"
+                        bat '''
+                            start "" /B java -jar file-processing-service\\target\\file-processing-service-0.0.1-SNAPSHOT.jar --server.port=8080 > api-output.log 2> api-error.log
                         '''
                     }
                 }
+
+                echo 'API start command completed'
             }
         }
 
@@ -92,7 +72,8 @@ pipeline {
                     }
 
                     if (-not $ready) {
-                        Write-Host "API failed to start"
+
+                        Write-Host "API did not start"
 
                         if (Test-Path "api\\api-output.log") {
                             Write-Host "=== API OUTPUT ==="
