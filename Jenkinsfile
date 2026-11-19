@@ -39,43 +39,39 @@ pipeline {
             }
         }
 
-        stage('Start API') {
-            steps {
-                dir('api') {
-                    withEnv(['JENKINS_NODE_COOKIE=dontKillAPI']) {
-                        powershell '''
-                            $jar = Get-ChildItem -Path . -Filter "*.jar" -Recurse |
-                                Where-Object {
-                                    $_.FullName -match "\\\\target\\\\" -and
-                                    $_.Name -notlike "*.original"
-                                } |
-                                Select-Object -First 1
+       stage('Start API') {
+           steps {
+               dir('api') {
 
-                            if (-not $jar) {
-                                throw "No API JAR found"
-                            }
+                   powershell '''
+                       $jar = Get-ChildItem -Path . -Filter "*.jar" -Recurse |
+                           Where-Object {
+                               $_.FullName -match "\\\\target\\\\" -and
+                               $_.Name -notlike "*.original"
+                           } |
+                           Select-Object -First 1
 
-                            Write-Host "Starting API JAR:"
-                            Write-Host $jar.FullName
+                       if (-not $jar) {
+                           throw "No API JAR found"
+                       }
 
-                            $logFile = Join-Path $PWD "api-output.log"
-                            $errorFile = Join-Path $PWD "api-error.log"
+                       Write-Host "API JAR found: $($jar.FullName)"
 
-                            $process = Start-Process `
-                                -FilePath "java" `
-                                -ArgumentList "-jar", "`"$($jar.FullName)`"", "--server.port=8080" `
-                                -RedirectStandardOutput $logFile `
-                                -RedirectStandardError $errorFile `
-                                -PassThru
+                       $jar.FullName | Out-File -FilePath api-jar.txt
+                   '''
 
-                            $process.Id | Out-File "api.pid"
+                   withEnv(['JENKINS_NODE_COOKIE=dontKillAPI']) {
+                       bat '''
+                           set /p API_JAR=<api-jar.txt
+                           echo Starting API: %API_JAR%
+                           start "" /B java -jar "%API_JAR%" --server.port=8080 > api-output.log 2> api-error.log
+                           echo API start command completed
+                       '''
+                   }
+               }
+           }
+       }
 
-                            Write-Host "Started API process $($process.Id)"
-                        '''
-                    }
-                }
-            }
-        }
 
         stage('Wait for API') {
             steps {
